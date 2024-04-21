@@ -148,7 +148,37 @@ class Anonymization:
         else:
             return "No dataset imported."
 
+    def generate_dataset(self, num_rows):
+        identifiers = ['User ID']  
+        quasi_identifiers = ['Age', 'Gender']  
+        sensitive_attributes = ['Income']  
+        
+        data = {
+            'User ID': range(1, num_rows + 1),
+            'Age': np.random.randint(18, 65, size=num_rows),
+            'Gender': np.random.choice(['Male', 'Female'], size=num_rows),
+            'Income': np.random.randint(20000, 100000, size=num_rows),
+            'Education': np.random.choice(['High School', 'Bachelor', 'Master', 'PhD'], size=num_rows),
+            'Marital Status': np.random.choice(['Single', 'Married', 'Divorced', 'Widowed'], size=num_rows),
+            'Region': np.random.choice(['North', 'South', 'East', 'West'], size=num_rows),
+            'Employment': np.random.choice(['Employed', 'Unemployed', 'Student', 'Retired'], size=num_rows),
+            'Health Status': np.random.choice(['Good', 'Fair', 'Poor'], size=num_rows),
+            'Internet Usage': np.random.choice(['High', 'Medium', 'Low'], size=num_rows),
+            'Shopping Preference': np.random.choice(['Online', 'In-store', 'Both'], size=num_rows),
+            'Hobbies': np.random.choice(['Reading', 'Sports', 'Cooking', 'Gardening'], size=num_rows),
+            'Height (cm)': np.random.normal(loc=170, scale=10, size=num_rows),  
+            'Weight (kg)': np.random.normal(loc=70, scale=15, size=num_rows), 
+            'Number of Children': np.random.randint(0, 5, size=num_rows), 
+            'Number of Pets': np.random.randint(0, 3, size=num_rows), 
+            'Travel Frequency': np.random.choice(['Rarely', 'Occasionally', 'Frequently'], size=num_rows), 
+            'Favorite Food': np.random.choice(['Italian', 'Mexican', 'Chinese', 'Indian'], size=num_rows), 
+        }
+        
+        # Create the DataFrame
+        self.dataset = pd.DataFrame(data)
 
+        return "Custom dataset generated successfully."
+        
     def show_results(self):
         if self.dataset is not None:
             return self.dataset.to_html()
@@ -203,14 +233,7 @@ def perturb_numeric_data():
 def show_results():
     return service.show_results()
 
-@app.route("/create_dataset", methods=["POST"])
-def create_dataset():
-    try:
-        data = request.json.get("data")
-        service.dataset = pd.DataFrame(data)
-        return "Dataset created successfully."
-    except Exception as e:
-        return str(e)
+
 
 @app.route("/k_anonymize", methods=["POST"])
 def k_anonymize():
@@ -233,7 +256,15 @@ def generalize_selected_categories():
     except Exception as e:
         return str(e)
 
-
+@app.route("/generate_dataset", methods=["POST"])
+def generate_dataset():
+    try:
+        data = request.get_json()
+        num_rows = data.get("num_rows")
+        response = service.generate_dataset(num_rows)
+        return response
+    except Exception as e:
+        return str(e)
 
 if __name__ == "__main__":
     app.run(debug=True)

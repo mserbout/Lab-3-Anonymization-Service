@@ -38,17 +38,16 @@
 
     <!-- generalize selected categories -->
     <h1>Generalize Selected categories</h1>
-    <form action="/generalize_selected_categories" method="post">
+    <form id="generalize-form">
         <label for="attribute">Attribute:</label><br>
         <input type="text" id="attribute" name="attribute"><br>
         <label for="categories">Categories (comma-separated):</label><br>
         <input type="text" id="categories" name="categories"><br>
         <label for="new_name">New Name:</label><br>
         <input type="text" id="new_name" name="new_name"><br>
-        <!-- <input type="submit" value="Submit"> -->
-        <button type="submit"  value="Submit" >Generalize</button>
-
+        <button type="button" onclick="generalizeSelectedCategories()">Generalize</button>
     </form>
+
 
     <hr> <!-- Horizontal Rule for Separation -->
 
@@ -87,12 +86,11 @@
     </form>
     <hr> <!-- Horizontal Rule for Separation -->
 
-    <!-- Create Dataset Section -->
-    <h1>Create Dataset</h1>
-    <form id="create-dataset-form">
-        <label for="data">Data (JSON format):</label><br>
-        <textarea id="data" name="data" required></textarea><br>
-        <button type="button" onclick="createDataset()">Create Dataset</button>
+    <h2>Generate Dataset</h2>
+    <form id="generate-dataset-form">
+        <label for="num-rows">Number of Rows:</label><br>
+        <input type="number" id="num-rows" name="num_rows" min="1" required><br>
+        <button type="button" onclick="generateDataset()">Generate Dataset</button>
     </form>
 
     <hr> <!-- Horizontal Rule for Separation -->
@@ -101,31 +99,17 @@
     <script>
 
 
-        <!-- -------------------- -->
-        fetch('/generalize_selected_categories', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(data)
-        })
-
-        document.querySelector('form[action="/generalize_selected_categories"]').addEventListener('submit', function (event) {
-            event.preventDefault();
-
-            // Get form data
-            var attribute = document.querySelector('#attribute').value;
-            var categories = document.querySelector('#categories').value.split(',');
-            var new_name = document.querySelector('#new_name').value;
-
-            // Create JSON data
+        function generalizeSelectedCategories() {
+            var attribute = document.getElementById("attribute").value;
+            var categories = document.getElementById("categories").value.split(',');
+            var new_name = document.getElementById("new_name").value;
+            
             var data = {
                 attribute: attribute,
                 categories: categories,
                 new_name: new_name
             };
-
-            // Send POST request
+        
             fetch('/generalize_selected_categories', {
                 method: 'POST',
                 headers: {
@@ -133,16 +117,15 @@
                 },
                 body: JSON.stringify(data)
             })
-                .then(response => response.text())
-                .then(result => {
-                    // Handle the result
-                    console.log(result);
-                    alert(result);
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                });
-        });
+            .then(response => response.text())
+            .then(result => {
+                alert(result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+        
 
 
 
@@ -192,32 +175,7 @@
             xhr.send(jsonData);
         }
 
-        function createDataset() {
-            var dataString = document.getElementById("data").value;
-            try {
-                var data = JSON.parse(dataString);
-                var jsonData = JSON.stringify({ "data": data });
 
-                var xhr = new XMLHttpRequest();
-                xhr.open("POST", "/create_dataset", true);
-                xhr.setRequestHeader("Content-Type", "application/json");
-                xhr.onreadystatechange = function () {
-                    if (xhr.readyState === 4) {
-                        if (xhr.status === 200) {
-                            console.log(xhr.responseText);
-                            alert("Dataset created successfully.");
-                        } else {
-                            console.error(xhr.responseText);
-                            alert("Error: " + xhr.responseText);
-                        }
-                    }
-                };
-                xhr.send(jsonData);
-            } catch (error) {
-                console.error(error);
-                alert("Error: Invalid JSON format.");
-            }
-        }
 
         function kanonymizeData() {
             var k = document.getElementById("k").value;
@@ -262,13 +220,8 @@
             fetch('/show_results')
             .then(response => response.text())
             .then(result => {
-                // Create a table element
                 var table = document.createElement("table");
-                
-                // Parse the HTML response into a table structure
                 table.innerHTML = result;
-                
-                // Clear previous results and append the new table
                 var resultsContainer = document.getElementById("results-container");
                 resultsContainer.innerHTML = ""; // Clear previous results
                 resultsContainer.appendChild(table);
@@ -278,8 +231,50 @@
             });
         }
         
+        // Add event listeners to enable/disable form sections after generating dataset
+        document.getElementById("generate-dataset-form").addEventListener('submit', function(event) {
+            toggleFormSections(false); // Disable form sections before generating dataset
+        });
+        
+        document.getElementById("generate-dataset-form").addEventListener('reset', function(event) {
+            toggleFormSections(true); // Enable form sections if dataset generation form is reset
+        });
+        
         
 
+        function toggleFormSections(enable) {
+            var forms = document.querySelectorAll('form');
+            forms.forEach(function(form) {
+                var elements = form.elements;
+                for (var i = 0; i < elements.length; i++) {
+                    elements[i].disabled = !enable;
+                }
+            });
+        }
+        
+        function generateDataset() {
+            var numRows = document.getElementById("num-rows").value;
+            var formData = {
+                "num_rows": parseInt(numRows)
+            };
+            var jsonData = JSON.stringify(formData);
+        
+            fetch('/generate_dataset', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: jsonData
+            })
+            .then(response => response.text())
+            .then(result => {
+                alert(result);
+                toggleFormSections(true); // Enable other form sections after generating dataset
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
         
 
     </script>
