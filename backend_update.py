@@ -11,10 +11,6 @@ class Anonymization:
     def __init__(self):
         self.dataset = None
         self.ope = OPE(b'encryption_key') 
-    
-    
-    
-
 
     def importing_database(self, file):
         try:
@@ -35,8 +31,6 @@ class Anonymization:
         except Exception as e:
             return str(e)
 
-
-
     def anonymize_data(self):
         if self.dataset is not None:
             try:
@@ -54,13 +48,57 @@ class Anonymization:
                     encrypted_ids.append(ciphertext)
                     
                 self.dataset['Pseudonym'] = encrypted_ids
-                #self.dataset['Pseudonym'] = np.random.randint(100000, 999999, num_records)
-                #self.dataset['Pseudonym'] = [self.ope.encrypt(str(i)) for i in range(1, num_records + 1)]
                 return "Data anonymized successfully."
             except Exception as e:
                 return str(e)
         else:
             return "No dataset imported."
+    
+    def k_anonymize(self, k, columns):
+        if self.dataset is not None:
+            try:
+                # Check if the dataset already satisfies k-anonymity for the specified columns
+                if self.is_k_anonymized(k, columns):
+                    return "Dataset already satisfies k-anonymity for the specified columns."
+
+                # If not, perform k-anonymization
+                # Sort the dataset
+                self.dataset.sort_values(by=columns, inplace=True)
+                
+                # Create a list for the anonymized groups
+                anonymized_groups = []
+                
+                # Split the dataset into groups of size k
+                for i in range(0, len(self.dataset), k):
+                    group = self.dataset[i:i+k]
+                    
+                    # Replace each value in the group with the mean (for numerical data) or mode (for categorical data)
+                    for column in columns:
+                        if np.issubdtype(group[column].dtype, np.number):
+                            group[column] = pd.cut(group[column], bins=k).astype(str)
+                        else:
+                            group[column] = group[column].mode()[0]
+                    
+                    # Append the group to the list of anonymized groups
+                    anonymized_groups.append(group)
+                
+                # Concatenate all the anonymized groups into a new DataFrame
+                self.dataset = pd.concat(anonymized_groups)
+                
+                return "Data anonymized successfully."
+            except Exception as e:
+                return str(e)
+        else:
+            return "No dataset imported."
+
+    def is_k_anonymized(self, k, columns):
+        """
+        Check if the dataset already satisfies k-anonymity for the specified columns.
+        """
+        group_counts = self.dataset.groupby(columns).size()
+        return all(count >= k for count in group_counts)
+
+
 
     def generalize_numeric_data(self, attribute, bins):
         if self.dataset is not None:
@@ -77,10 +115,8 @@ class Anonymization:
         else:
             return "No dataset imported."
         
-        
     
     def perturb_numeric_data(self, attributes, noise_scale=0.3):
-
         if self.dataset is not None:
             try:
                 for attr in attributes:
@@ -97,9 +133,25 @@ class Anonymization:
             return "No dataset imported."
 
 
+    def generalize_selected_categories(self, attribute, categories, new_name):
+        if self.dataset is not None:
+            if attribute in self.dataset.columns:
+                try:
+                    # Replace the selected categories with the new name
+                    self.dataset.loc[self.dataset[attribute].isin(categories), attribute] = new_name
+                    
+                    return "Selected categories generalized successfully."
+                except Exception as e:
+                    return str(e)
+            else:
+                return f"Attribute '{attribute}' not found in the dataset."
+        else:
+            return "No dataset imported."
+
+
     def show_results(self):
         if self.dataset is not None:
-            return self.dataset.to_json()
+            return self.dataset.to_html()
         else:
             return "No results."
 
@@ -107,7 +159,7 @@ service = Anonymization()
 
 @app.route("/")
 def index():
-    with open("index.html", "r") as file:
+    with open("index_update.html", "r") as file:
         html_content = file.read()
     return html_content
 
@@ -119,8 +171,6 @@ def importing_database():
         file = request.files["file"]
         if file.filename == "":
             return "No selected file"
-        #file_path = "uploaded_dataset.csv"
-        #file.save(file_path)
         return service.importing_database(file)
     except Exception as e:
         return str(e)
@@ -139,10 +189,6 @@ def generalize_numeric_data():
     except Exception as e:
         return str(e)
     
-    
-    
-
-
 @app.route("/perturb_numeric_data", methods=["POST"])
 def perturb_numeric_data():
     try:
@@ -166,15 +212,27 @@ def create_dataset():
     except Exception as e:
         return str(e)
 
-@app.route("/anonymize_data_kanonymity", methods=["POST"])
-def anonymize_data_kanonymity():
+@app.route("/k_anonymize", methods=["POST"])
+def k_anonymize():
     try:
-        k = request.json.get("k")
-        return "Data anonymized with k-anonymity successfully."
+        data = request.get_json()
+        k = data.get("k")
+        columns = data.get("columns")
+        return service.k_anonymize(k, columns)
     except Exception as e:
         return str(e)
-    
-    
+
+@app.route("/generalize_selected_categories", methods=["POST"])
+def generalize_selected_categories():
+    try:
+        data = request.get_json()
+        attribute = data.get("attribute")
+        categories = data.get("categories")
+        new_name = data.get("new_name")
+        return service.generalize_selected_categories(attribute, categories, new_name)
+    except Exception as e:
+        return str(e)
+
 
 
 if __name__ == "__main__":

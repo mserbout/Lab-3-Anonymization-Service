@@ -1,0 +1,120 @@
+/* Global styles */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #f8f9fa;
+    color: #333;
+    width: 70%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    border-radius: 8px;
+}
+
+/* Header styles */
+h1 {
+    color: #007bff;
+    text-align: center;
+}
+
+/* Form styles */
+form {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="number"],
+textarea {
+    width: calc(100% - 24px); /* Adjust for padding */
+    padding: 12px;
+    margin: 0 auto 15px auto; /* Center with margin */
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+textarea:focus {
+    border-color: #007bff;
+}
+
+button[type="submit"],
+button[type="button"] {
+    width: calc(100% - 24px); /* Adjust for padding */
+    padding: 12px 0;
+    margin: 0 auto 15px auto; /* Center with margin */
+    background: linear-gradient(to bottom, #007bff 0%, #0056b3 100%);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button[type="submit"]:hover,
+button[type="button"]:hover {
+    background: linear-gradient(to bottom, #0056b3 0%, #007bff 100%);
+}
+
+/* Horizontal rule */
+hr {
+    border: none;
+    border-top: 1px solid #ccc;
+    margin: 20px auto;
+    width: calc(100% - 40px); /* Adjust for margin */
+}
+
+/* Adjustments for specific sections */
+#kanonymize-form label,
+#generalize-form label,
+#perturb-form label,
+#create-dataset-form label {
+    display: inline-block;
+    width: 120px;
+    margin-bottom: 5px;
+}
+
+#kanonymize-form input[type="number"],
+#generalize-form input[type="number"],
+#perturb-form input[type="number"] {
+    width: 80px;
+}
+
+#kanonymize-form input[type="text"],
+#generalize-form input[type="text"],
+#perturb-form input[type="text"] {
+    width: calc(100% - 130px);
+}
+
+#create-dataset-form textarea {
+    height: 100px;
+    resize: vertical;
+}
+
+/* More modern and stylish elements */
+.container {
+    background-color: #fff;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.results-container {
+    max-height: 300px; /* Maximum height */
+    width: 100%; /* Full width */
+    overflow: auto; /* Add scrollbar when content exceeds max-height */
+}

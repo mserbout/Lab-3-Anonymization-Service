@@ -1,157 +1,289 @@
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>Anonymization Service</title>
-        </head>
-        <body>
-            <h1>Anonymization Service</h1>
+<!DOCTYPE html>
+<html lang="en">
 
-            <h2>Import Database</h2>
-            <form action="/importing_database" method="post" enctype="multipart/form-data">
-                <label for="file">Choose a file:</label><br>
-                <input type="file" id="file" name="file" accept=".csv, .xls, .xlsx, .jdbc"><br>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="static/style1.css">
+    <title>Anonymization Service</title>
+</head>
 
-                <input type="submit" value="Upload">
-                
-            </form>
-            
-            
-            <h2>Anonymize Data</h2>
-            <form action="/anonymize_data" method="POST">
-                <button type="submit">Anonymize Data</button>
-            </form>
+<body>
 
-            
+    <h1>Anonymization Service</h1>
 
-            <h2>Show Results</h2>
-            <form action="/show_results" method="GET">
-                <button type="submit">Show Results</button>
-            </form>
+    <!-- Import Database Section -->
+    <h2>Import Database</h2>
+    <form id="import-database-form" enctype="multipart/form-data">
+        <label for="file">Choose a file:</label><br>
+        <input type="file" id="file" name="file" accept=".csv, .xls, .xlsx, .jdbc"><br>
+        <button type="button" onclick="importDatabase()">Upload</button>
+    </form>
 
-            
-            
-            <h2>Anonymize Data with k-Anonymity</h2>
-            <form action="/anonymize_data_kanonymity" method="POST">
-                <label for="k">k:</label>
-                <input type="number" id="k" name="k" required><br>
-                <button type="submit">Anonymize Data with k-Anonymity</button>
-            </form>
+    <!-- Show Results Section -->
+    <h1>Show Results</h1>
+    <div id="results-container" class="results-container"></div>
+    <button type="button" onclick="showResults()">Show Results</button>
 
-            
-            <h2>Generalize Numeric Data</h2>
-            <form id="generalize-form" action="/generalize_numeric_data" method="POST">
-                <label for="attribute">Attribute:</label>
-                <input type="text" id="attribute" name="attribute" required><br>
-                <label for="bins">Bins (comma-separated):</label>
-                <input type="text" id="bins" name="bins" required><br>
-                <button type="button" onclick="generalizeNumericData()">Generalize Numeric Data</button>
-            </form>
 
-            <script>
-                function generalizeNumericData() {
-                    var attribute = document.getElementById("attribute").value;
-                    var bins = document.getElementById("bins").value;
-                    // Convert bins string to an array of integers
-                    bins = bins.split(',').map(function(item) {
-                        return parseInt(item.trim(), 10);
-                    });
-                    var formData = {
-                        "attribute": attribute,
-                        "bins": bins
-                    };
-                    var jsonData = JSON.stringify(formData);
-                    
-                    var xhr = new XMLHttpRequest();
-                    xhr.open("POST", "/generalize_numeric_data", true);
-                    xhr.setRequestHeader("Content-Type", "application/json");
-                    xhr.onreadystatechange = function () {
-                        if (xhr.readyState === 4 && xhr.status === 200) {
-                            console.log(xhr.responseText);
-                            alert(xhr.responseText);
-                        }
-                    };
-                    xhr.send(jsonData);
+    <hr> <!-- Horizontal Rule for Se    paration -->
+
+    <!-- Anonymize Data Section -->
+    <h1>Anonymize Data</h1>
+    <form action="/anonymize_data" method="POST">
+        <button type="submit">Anonymize Data</button>
+    </form>
+
+    <hr> <!-- Horizontal Rule for Separation -->
+
+    <!-- generalize selected categories -->
+    <h1>Generalize Selected categories</h1>
+    <form action="/generalize_selected_categories" method="post">
+        <label for="attribute">Attribute:</label><br>
+        <input type="text" id="attribute" name="attribute"><br>
+        <label for="categories">Categories (comma-separated):</label><br>
+        <input type="text" id="categories" name="categories"><br>
+        <label for="new_name">New Name:</label><br>
+        <input type="text" id="new_name" name="new_name"><br>
+        <!-- <input type="submit" value="Submit"> -->
+        <button type="submit"  value="Submit" >Generalize</button>
+
+    </form>
+
+    <hr> <!-- Horizontal Rule for Separation -->
+
+
+    <!-- K-Anonymize Data Section -->
+    <h1>K-Anonymize Data</h1>
+    <form id="kanonymize-form" action="/k_anonymize" method="POST">
+        <label for="k">K value:</label>
+        <input type="number" id="k" name="k" min="1" required><br>
+        <label for="columns">Columns (comma-separated):</label>
+        <input type="text" id="columns" name="columns" required><br>
+        <button type="button" onclick="kanonymizeData()">K-Anonymize Data</button>
+    </form>
+
+    <hr> <!-- Horizontal Rule for Separation -->
+
+
+    <!-- Generalize Numeric Data Section -->
+    <h1>Generalize Numeric Data</h1>
+    <form id="generalize-form" action="/generalize_numeric_data" method="POST">
+        <label for="attribute">Attribute:</label>
+        <input type="text" id="attribute" name="attribute" required><br>
+        <label for="bins">Bins (comma-separated):</label>
+        <input type="text" id="bins" name="bins" required><br>
+        <button type="button" onclick="generalizeNumericData()">Generalize Numeric Data</button>
+    </form>
+
+    <!-- Perturb Numeric Data Section -->
+    <h1>Perturb Numeric Data</h1>
+    <form id="perturb-form" action="/perturb_numeric_data" method="POST">
+        <label for="attributes">Attributes (comma-separated):</label>
+        <input type="text" id="attributes" name="attributes" required><br>
+        <label for="noise_scale">Noise Scale:</label>
+        <input type="number" id="noise_scale" name="noise_scale" step="0.01" value="0.3"><br>
+        <button type="button" onclick="perturbNumericData()">Perturb Numeric Data</button>
+    </form>
+    <hr> <!-- Horizontal Rule for Separation -->
+
+    <!-- Create Dataset Section -->
+    <h1>Create Dataset</h1>
+    <form id="create-dataset-form">
+        <label for="data">Data (JSON format):</label><br>
+        <textarea id="data" name="data" required></textarea><br>
+        <button type="button" onclick="createDataset()">Create Dataset</button>
+    </form>
+
+    <hr> <!-- Horizontal Rule for Separation -->
+
+
+    <script>
+
+
+        <!-- -------------------- -->
+        fetch('/generalize_selected_categories', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        })
+
+        document.querySelector('form[action="/generalize_selected_categories"]').addEventListener('submit', function (event) {
+            event.preventDefault();
+
+            // Get form data
+            var attribute = document.querySelector('#attribute').value;
+            var categories = document.querySelector('#categories').value.split(',');
+            var new_name = document.querySelector('#new_name').value;
+
+            // Create JSON data
+            var data = {
+                attribute: attribute,
+                categories: categories,
+                new_name: new_name
+            };
+
+            // Send POST request
+            fetch('/generalize_selected_categories', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data)
+            })
+                .then(response => response.text())
+                .then(result => {
+                    // Handle the result
+                    console.log(result);
+                    alert(result);
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                });
+        });
+
+
+
+        function generalizeNumericData() {
+            var attribute = document.getElementById("attribute").value;
+            var bins = document.getElementById("bins").value;
+            // Convert bins string to an array of integers
+            bins = bins.split(',').map(function (item) {
+                return parseInt(item.trim(), 10);
+            });
+            var formData = {
+                "attribute": attribute,
+                "bins": bins
+            };
+            var jsonData = JSON.stringify(formData);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/generalize_numeric_data", true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    console.log(xhr.responseText);
+                    alert(xhr.responseText);
                 }
-                </script>
+            };
+            xhr.send(jsonData);
+        }
 
+        function perturbNumericData() {
+            var attributes = document.getElementById("attributes").value;
+            var noiseScale = document.getElementById("noise_scale").value;
+            var formData = {
+                "attributes": attributes.split(',').map(item => item.trim()),
+                "noise_scale": parseFloat(noiseScale)
+            };
+            var jsonData = JSON.stringify(formData);
 
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/perturb_numeric_data", true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    console.log(xhr.responseText);
+                    alert(xhr.responseText);
+                }
+            };
+            xhr.send(jsonData);
+        }
 
+        function createDataset() {
+            var dataString = document.getElementById("data").value;
+            try {
+                var data = JSON.parse(dataString);
+                var jsonData = JSON.stringify({ "data": data });
 
-
-
-                <h2>Perturb Numeric Data</h2>
-                <form id="perturb-form" action="/perturb_numeric_data" method="POST">
-                    <label for="attributes">Attributes (comma-separated):</label>
-                    <input type="text" id="attributes" name="attributes" required><br>
-                    <label for="noise_scale">Noise Scale:</label>
-                    <input type="number" id="noise_scale" name="noise_scale" step="0.01" value="0.3"><br>
-                    
-                    <button type="button" onclick="perturbNumericData()">Perturb Numeric Data</button>
-                </form>
-
-                <script>
-                    function perturbNumericData() {
-                        var attributes = document.getElementById("attributes").value;
-                        var noiseScale = document.getElementById("noise_scale").value;
-                        var formData = {
-                            "attributes": attributes.split(',').map(item => item.trim()),
-                            "noise_scale": parseFloat(noiseScale)
-                        };
-                        var jsonData = JSON.stringify(formData);
-                        
-                        var xhr = new XMLHttpRequest();
-                        xhr.open("POST", "/perturb_numeric_data", true);
-                        xhr.setRequestHeader("Content-Type", "application/json");
-                        xhr.onreadystatechange = function () {
-                            if (xhr.readyState === 4 && xhr.status === 200) {
-                                console.log(xhr.responseText);
-                                alert(xhr.responseText);
-                            }
-                        };
-                        xhr.send(jsonData);
-                    }
-                </script>
-
-                <h2>Create Dataset</h2>
-                <form id="create-dataset-form">
-                    <label for="data">Data (JSON format):</label><br>
-                    <textarea id="data" name="data" required></textarea><br>
-                    <button type="button" onclick="createDataset()">Create Dataset</button>
-                </form>
-
-                <script>
-                    function createDataset() {
-                        var dataString = document.getElementById("data").value;
-                        try {
-                            var data = JSON.parse(dataString);
-                            var jsonData = JSON.stringify({ "data": data });
-                            
-                            var xhr = new XMLHttpRequest();
-                            xhr.open("POST", "/create_dataset", true);
-                            xhr.setRequestHeader("Content-Type", "application/json");
-                            xhr.onreadystatechange = function () {
-                                if (xhr.readyState === 4) {
-                                    if (xhr.status === 200) {
-                                        console.log(xhr.responseText);
-                                        alert("Dataset created successfully.");
-                                    } else {
-                                        console.error(xhr.responseText);
-                                        alert("Error: " + xhr.responseText);
-                                    }
-                                }
-                            };
-                            xhr.send(jsonData);
-                        } catch (error) {
-                            console.error(error);
-                            alert("Error: Invalid JSON format.");
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", "/create_dataset", true);
+                xhr.setRequestHeader("Content-Type", "application/json");
+                xhr.onreadystatechange = function () {
+                    if (xhr.readyState === 4) {
+                        if (xhr.status === 200) {
+                            console.log(xhr.responseText);
+                            alert("Dataset created successfully.");
+                        } else {
+                            console.error(xhr.responseText);
+                            alert("Error: " + xhr.responseText);
                         }
                     }
-                </script>
-                            
+                };
+                xhr.send(jsonData);
+            } catch (error) {
+                console.error(error);
+                alert("Error: Invalid JSON format.");
+            }
+        }
+
+        function kanonymizeData() {
+            var k = document.getElementById("k").value;
+            var columns = document.getElementById("columns").value.split(',').map(item => item.trim());
+            var formData = {
+                "k": parseInt(k),
+                "columns": columns
+            };
+            var jsonData = JSON.stringify(formData);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open("POST", "/k_anonymize", true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.onreadystatechange = function () {
+                if (xhr.readyState === 4 && xhr.status === 200) {
+                    console.log(xhr.responseText);
+                    alert(xhr.responseText);
+                }
+            };
+            xhr.send(jsonData);
+        }
+
+        function importDatabase() {
+            var form = document.getElementById("import-database-form");
+            var formData = new FormData(form);
+
+            fetch('/importing_database', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.text())
+            .then(result => {
+                // Display the result
+                alert(result);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+
+        function showResults() {
+            fetch('/show_results')
+            .then(response => response.text())
+            .then(result => {
+                // Create a table element
+                var table = document.createElement("table");
+                
+                // Parse the HTML response into a table structure
+                table.innerHTML = result;
+                
+                // Clear previous results and append the new table
+                var resultsContainer = document.getElementById("results-container");
+                resultsContainer.innerHTML = ""; // Clear previous results
+                resultsContainer.appendChild(table);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        }
+        
+        
+
+        
+
+    </script>
+</body>
 
 
-            
-        </body>
-        </html>
+</html>
