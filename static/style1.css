@@ -1,0 +1,114 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #dbd6d6;
+    color: #161515;
+    width: 70%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+    border-radius: 8px;
+}
+
+h1 {
+    color: #007bff;
+    text-align: center;
+}
+
+form {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+input[type="text"],
+input[type="number"],
+textarea {
+    width: calc(100% - 24px);
+    padding: 12px;
+    margin: 0 auto 15px auto; 
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+    transition: border-color 0.3s ease;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+textarea:focus {
+    border-color: #007bff;
+}
+
+button[type="submit"],
+button[type="button"] {
+    width: calc(100% - 24px); 
+    padding: 12px 0;
+    margin: 0 auto 15px auto; 
+    background: linear-gradient(to bottom, #14f14b 0%, #0241c7 100%);
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button[type="submit"]:hover,
+button[type="button"]:hover {
+    background: linear-gradient(to bottom, #0056b3 0%, #007bff 100%);
+}
+
+hr {
+    border: none;
+    border-top: 1px solid #7c7217;
+    margin: 20px auto;
+    width: calc(100% - 40px); 
+}
+
+#kanonymize-form label,
+#generalize-form label,
+#perturb-form label,
+#create-dataset-form label {
+    display: inline-block;
+    width: 120px;
+    margin-bottom: 5px;
+}
+
+#kanonymize-form input[type="number"],
+#generalize-form input[type="number"],
+#perturb-form input[type="number"] {
+    width: 80px;
+}
+
+#kanonymize-form input[type="text"],
+#generalize-form input[type="text"],
+#perturb-form input[type="text"] {
+    width: calc(100% - 130px);
+}
+
+#create-dataset-form textarea {
+    height: 100px;
+    resize: vertical;
+}
+
+.container {
+    background-color: #fff;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+}
+
+.results-container {
+    max-height: 300px;
+    width: 100%;
+    overflow: auto; 
+}
