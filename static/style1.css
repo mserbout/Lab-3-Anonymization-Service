@@ -56,7 +56,7 @@ button[type="button"] {
     width: calc(100% - 24px); 
     padding: 12px 0;
     margin: 0 auto 15px auto; 
-    background: linear-gradient(to bottom, #14f14b 0%, #0241c7 100%);
+    background: linear-gradient(to bottom, #310adf 0%, #0241c7 100%);
     color: #fff;
     border: none;
     border-radius: 6px;
