@@ -5,6 +5,8 @@ from pyope.ope import OPE
 from io import BytesIO
 import os
 import random
+import scipy.stats
+
 app = Flask(__name__)
 
 class Anonymization:
@@ -127,6 +129,40 @@ class Anonymization:
                     else:
                         return f"Attribute '{attr}' not found in the dataset."
                 return "Numeric data perturbed successfully."
+            except Exception as e:
+                return str(e)
+        else:
+            return "No dataset imported."
+
+    def multiplicative_perturbation(self, attributes, distribution_params):
+        if self.dataset is not None:
+            try:
+                for attr in attributes:
+                    if attr in self.dataset.columns:
+                        # Generate random values from the specified distribution
+                        random_values = scipy.stats.lognorm.rvs(*distribution_params, size=len(self.dataset))
+                        # Multiply each data point by a random value
+                        self.dataset[attr] = self.dataset[attr] * random_values
+                    else:
+                        return f"Attribute '{attr}' not found in the dataset."
+                return "Multiplicative perturbation applied successfully."
+            except Exception as e:
+                return str(e)
+        else:
+            return "No dataset imported."
+
+    def uniform_perturbation(self, attributes, lower_bound, upper_bound):
+        if self.dataset is not None:
+            try:
+                for attr in attributes:
+                    if attr in self.dataset.columns:
+                        # Generate random values uniformly distributed within the specified range
+                        random_values = np.random.uniform(lower_bound, upper_bound, size=len(self.dataset))
+                        # Add random values to each data point
+                        self.dataset[attr] = self.dataset[attr] + random_values
+                    else:
+                        return f"Attribute '{attr}' not found in the dataset."
+                return "Uniform perturbation applied successfully."
             except Exception as e:
                 return str(e)
         else:
@@ -282,6 +318,27 @@ def perturb_numeric_data():
         attributes = data.get("attributes")
         noise_scale = data.get("noise_scale", 0.3)
         return service.perturb_numeric_data(attributes, noise_scale)
+    except Exception as e:
+        return str(e)
+
+@app.route("/multiplicative_perturbation", methods=["POST"])
+def multiplicative_perturbation_route():
+    try:
+        data = request.get_json()
+        attributes = data.get("attributes")
+        distribution_params = data.get("distribution_params")  # e.g., [s, loc, scale]
+        return service.multiplicative_perturbation(attributes, distribution_params)
+    except Exception as e:
+        return str(e)
+
+@app.route("/uniform_perturbation", methods=["POST"])
+def uniform_perturbation_route():
+    try:
+        data = request.get_json()
+        attributes = data.get("attributes")
+        lower_bound = data.get("lower_bound")
+        upper_bound = data.get("upper_bound")
+        return service.uniform_perturbation(attributes, lower_bound, upper_bound)
     except Exception as e:
         return str(e)
 
