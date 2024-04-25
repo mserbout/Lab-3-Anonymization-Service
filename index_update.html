@@ -78,18 +78,6 @@
     <hr> <!-- Horizontal Rule for Separation -->
 
 
-    <!-- Generalize Numeric Data Section -->
-    <h1>Generalize Numeric Data</h1>
-    <form id="generalize-form" action="/generalize_numeric_data" method="POST">
-        <label for="attribute">Attribute:</label>
-        <input type="text" id="attribute" name="attribute" required><br>
-        <label for="bins">Bins (comma-separated):</label>
-        <input type="text" id="bins" name="bins" required><br>
-        <button type="button" onclick="generalizeNumericData()">Generalize Numeric Data</button>
-    </form>
-
-    <hr> <!-- Horizontal Rule for Separation -->
-
     <!-- Perturb Numeric Data Section -->
     <h1>Perturb Numeric Data</h1>
     <form id="perturb-form" action="/perturb_numeric_data" method="POST">
@@ -185,55 +173,7 @@
                 console.error('Error:', error);
             });
         }
-        
 
-
-
-        function generalizeNumericData() {
-            var attribute = document.getElementById("attribute").value;
-            var bins = document.getElementById("bins").value;
-            // Convert bins string to an array of integers
-            bins = bins.split(',').map(function (item) {
-                return parseInt(item.trim(), 10);
-            });
-            var formData = {
-                "attribute": attribute,
-                "bins": bins
-            };
-            var jsonData = JSON.stringify(formData);
-
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", "/generalize_numeric_data", true);
-            xhr.setRequestHeader("Content-Type", "application/json");
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    console.log(xhr.responseText);
-                    alert(xhr.responseText);
-                }
-            };
-            xhr.send(jsonData);
-        }
-
-        function perturbNumericData() {
-            var attributes = document.getElementById("attributes").value;
-            var noiseScale = document.getElementById("noise_scale").value;
-            var formData = {
-                "attributes": attributes.split(',').map(item => item.trim()),
-                "noise_scale": parseFloat(noiseScale)
-            };
-            var jsonData = JSON.stringify(formData);
-
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", "/perturb_numeric_data", true);
-            xhr.setRequestHeader("Content-Type", "application/json");
-            xhr.onreadystatechange = function () {
-                if (xhr.readyState === 4 && xhr.status === 200) {
-                    console.log(xhr.responseText);
-                    alert(xhr.responseText);
-                }
-            };
-            xhr.send(jsonData);
-        }
 
         function applyMultiplicativePerturbation() {
             var attributes = document.getElementById("multiplicative_attributes").value.split(",");

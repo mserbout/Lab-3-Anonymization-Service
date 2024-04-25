@@ -119,22 +119,6 @@ class Anonymization:
                 return False
         return True
 
-
-
-    def generalize_numeric_data(self, attribute, bins):
-        if self.dataset is not None:
-            if attribute in self.dataset.columns:
-                try:
-                    self.dataset[attribute] = pd.to_numeric(self.dataset[attribute], errors='coerce')
-                    self.dataset[attribute] = pd.cut(self.dataset[attribute], bins=bins).astype(str) 
-                    
-                    return "Numeric data generalized successfully."
-                except Exception as e:
-                    return str(e)
-            else:
-                return f"Attribute '{attribute}' not found in the dataset."
-        else:
-            return "No dataset imported."
         
     
     def perturb_numeric_data(self, attributes, noise_scale=0.3):
@@ -320,15 +304,6 @@ def importing_database():
 def anonymize_data():
     return service.anonymize_data()
 
-@app.route("/generalize_numeric_data", methods=["POST"])
-def generalize_numeric_data():
-    try:
-        data = request.get_json()
-        attribute = data.get("attribute")
-        bins = data.get("bins")
-        return service.generalize_numeric_data(attribute, bins)
-    except Exception as e:
-        return str(e)
     
 @app.route("/perturb_numeric_data", methods=["POST"])
 def perturb_numeric_data():
