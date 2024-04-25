@@ -6,6 +6,7 @@ from io import BytesIO
 import os
 import random
 import scipy.stats
+import string
 
 app = Flask(__name__)
 
@@ -55,7 +56,7 @@ class Anonymization:
                 return str(e)
         else:
             return "No dataset imported."
-    
+     
     def k_anonymize(self, k, columns):
         if self.dataset is not None:
             try:
@@ -74,12 +75,14 @@ class Anonymization:
                 for i in range(0, len(self.dataset), k):
                     group = self.dataset[i:i+k]
                     
-                    # Replace each value in the group with the mean (for numerical data) or mode (for categorical data)
+                    # Replace each value in the group with the range (for numerical data) or a random category (for categorical data)
                     for column in columns:
                         if np.issubdtype(group[column].dtype, np.number):
-                            group[column] = pd.cut(group[column], bins=k).astype(str)
+                            min_val = group[column].min()
+                            max_val = group[column].max()
+                            group[column] = f"{min_val}-{max_val}"
                         else:
-                            group[column] = group[column].mode()[0]
+                            group[column] = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
                     
                     # Append the group to the list of anonymized groups
                     anonymized_groups.append(group)

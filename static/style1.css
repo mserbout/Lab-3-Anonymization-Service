@@ -2,8 +2,8 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #dbd6d6;
-    color: #161515;
+    background-color: #f8f9fa;
+    color: #333;
     width: 70%;
     margin-left: auto;
     margin-right: auto;
@@ -56,7 +56,7 @@ button[type="button"] {
     width: calc(100% - 24px); 
     padding: 12px 0;
     margin: 0 auto 15px auto; 
-    background: linear-gradient(to bottom, #14f14b 0%, #0241c7 100%);
+    background: linear-gradient(to bottom, #007bff 0%, #0056b3 100%);
     color: #fff;
     border: none;
     border-radius: 6px;
@@ -71,7 +71,7 @@ button[type="button"]:hover {
 
 hr {
     border: none;
-    border-top: 1px solid #7c7217;
+    border-top: 1px solid #ccc;
     margin: 20px auto;
     width: calc(100% - 40px); 
 }
