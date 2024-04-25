@@ -75,14 +75,21 @@ class Anonymization:
                 for i in range(0, len(self.dataset), k):
                     group = self.dataset[i:i+k]
                     
-                    # Replace each value in the group with the range (for numerical data) or a random category (for categorical data)
+                    # Replace each value in the group with the range (for numerical data) or a category string (for categorical data)
                     for column in columns:
                         if np.issubdtype(group[column].dtype, np.number):
                             min_val = group[column].min()
                             max_val = group[column].max()
                             group[column] = f"{min_val}-{max_val}"
                         else:
-                            group[column] = ''.join(random.choices(string.ascii_uppercase + string.digits, k=5))
+                            unique_values = group[column].unique()
+                            if len(unique_values) > 1:
+                                group[column] = '/'.join(unique_values)
+                            else:
+                                # Replace with a combination of its own value and some other random values from the unique categories in the dataset
+                                unique_categories = self.dataset[column].unique()
+                                random_categories = np.random.choice(unique_categories, 2, replace=False)
+                                group[column] = '/'.join([unique_values[0], *random_categories])
                     
                     # Append the group to the list of anonymized groups
                     anonymized_groups.append(group)
@@ -102,6 +109,15 @@ class Anonymization:
         """
         group_counts = self.dataset.groupby(columns).size()
         return all(count >= k for count in group_counts)
+
+    def is_k_anonymized(self, k, columns):
+        # Check if the dataset already satisfies k-anonymity for the specified columns
+        for i in range(0, len(self.dataset), k):
+            group = self.dataset[i:i+k]
+            unique_combinations = group[columns].drop_duplicates()
+            if len(unique_combinations) < k:
+                return False
+        return True
 
 
 
