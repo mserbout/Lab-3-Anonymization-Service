@@ -8,6 +8,8 @@ import random
 import scipy.stats
 import string
 import matplotlib.pyplot as plt
+import seaborn as sns
+import base64
 
 app = Flask(__name__)
 
@@ -308,39 +310,51 @@ def generate_dataset():
     except Exception as e:
         return str(e)
 
-@app.route("/plot_data", methods=["GET"])
-def plot_data():
+@app.route("/plot_data_distributions", methods=["POST"])
+def plot_data_distributions():
     try:
-        if service.dataset is None:
-            return "No dataset imported."
+        data = request.get_json()
+        column = data.get("column")
+        
+        if column not in service.dataset.columns:
+            return jsonify({"message": f"Column '{column}' not found in the dataset."})
 
-        # Anonymize the data
-        attributes_to_drop = []  # Assuming no attributes are dropped for simplicity
-        service.anonymize_data(attributes_to_drop)
-
-        # Plotting original data distributions
-        plt.figure(figsize=(10, 6))
+        # Plot the original data distribution
+        plt.figure(figsize=(16, 8))
         plt.subplot(1, 2, 1)
-        for column in service.dataset.columns:
-            if service.dataset[column].dtype in [int, float]:
-                service.dataset[column].plot(kind='hist', alpha=0.5, label=column)
-        plt.title('Original Data Distributions')
-        plt.legend()
+        if np.issubdtype(service.dataset[column].dtype, np.number):
+            sns.histplot(service.dataset[column], kde=True)
+            plt.xlabel(column)
+            plt.ylabel("Frequency")
+            plt.title(f"Original Distribution of {column}")
+        else:
+            sns.countplot(x=column, data=service.dataset)
+            plt.xlabel(column)
+            plt.ylabel("Count")
+            plt.title(f"Original Distribution of {column}")
 
-        # Plotting data after anonymization
+        # Plot the anonymized data distribution
         plt.subplot(1, 2, 2)
-        for column in service.dataset.columns:
-            if service.dataset[column].dtype in [int, float]:
-                service.dataset[column].plot(kind='hist', alpha=0.5, label=column)
-        plt.title('Anonymized Data Distributions')
-        plt.legend()
+        modified_column = service.dataset[column] + 1  # Modify as needed
+        if np.issubdtype(modified_column.dtype, np.number):
+            sns.histplot(modified_column, kde=True)
+            plt.xlabel(column)
+            plt.ylabel("Frequency")
+            plt.title(f"Anonymized Distribution of {column}")
+        else:
+            sns.countplot(x=modified_column, data=service.dataset)
+            plt.xlabel(column)
+            plt.ylabel("Count")
+            plt.title(f"Anonymized Distribution of {column}")
 
-
-        plt.show()
-
-        plt.close()
-
-        return "Plot generated successfully"
+        # Save the plot to a BytesIO object
+        buffer = BytesIO()
+        plt.savefig(buffer, format='png')
+        buffer.seek(0)
+        
+        # Return the image as a base64 encoded string
+        return base64.b64encode(buffer.getvalue()).decode('utf-8')
+    
     except Exception as e:
         return str(e)
 

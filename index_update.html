@@ -125,27 +125,39 @@
         });
     </script>
 
-     <!-- Plot data -->
-     <!-- Button to plot data -->
-     <button onclick="plotData()">Plot Data</button>
+<h1>Plot Data Distributions</h1>
+<form id="plotForm">
+    <label for="column">Column Name:</label>
+    <input type="text" id="column" name="column">
+    <button type="submit">Plot</button>
+</form>
+<div id="plotResult"></div>
 
-     <!-- Div to display plot message -->
-     <div id="plot-message"></div>
- 
-     <script>
-         function plotData() {
-             fetch('/plot_data', {
-                 method: 'GET',
-             })
-             .then(response => response.text())
-             .then(result => {
-                 document.getElementById("plot-message").innerHTML = result;
-             })
-             .catch(error => {
-                 console.error('Error:', error);
-             });
-         }
-     </script>
+<script>
+    document.getElementById('plotForm').addEventListener('submit', function(event) {
+        event.preventDefault();
+        let column = document.getElementById('column').value;
+        plotData(column);
+    });
+
+    function plotData(column) {
+        fetch('/plot_data_distributions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ column: column })
+        })
+        .then(response => response.text())
+        .then(data => {
+            let img = document.createElement('img');
+            img.src = 'data:image/png;base64,' + data;
+            document.getElementById('plotResult').innerHTML = '';
+            document.getElementById('plotResult').appendChild(img);
+        })
+        .catch(error => console.error('Error:', error));
+    }
+</script>
 
     <script> 
 
