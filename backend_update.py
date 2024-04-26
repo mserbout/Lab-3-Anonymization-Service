@@ -7,6 +7,7 @@ import os
 import random
 import scipy.stats
 import string
+import matplotlib.pyplot as plt
 
 app = Flask(__name__)
 
@@ -34,33 +35,33 @@ class Anonymization:
         except Exception as e:
             return str(e)
 
-    def anonymize_data(self, attributes_to_drop):
+    def Deidentification(self, attributes_to_drop):
         if self.dataset is not None:
             try:
-                # Check if all attributes exist in the dataset
-                for attribute_to_drop in attributes_to_drop:
-                    if attribute_to_drop not in self.dataset.columns:
-                        return f"Attribute '{attribute_to_drop}' not found in the dataset."
+               # Check if all attributes exist in the dataset
+               for attribute_to_drop in attributes_to_drop:
+                   if attribute_to_drop not in self.dataset.columns:
+                       return f"Attribute '{attribute_to_drop}' not found in the dataset."
 
-                # Drop the specified attributes
-                self.dataset.drop(columns=attributes_to_drop, inplace=True)
-                    
-                # Encrypt the sequential numbers to create pseudonyms
-                num_records = len(self.dataset)
-                encrypted_ids = []
-                for i in range(1, num_records + 1):
-                    plaintext = str(i)
-                    plaintext_int = int(plaintext)  # Convert plaintext to integer
-                    ciphertext = self.ope.encrypt(plaintext_int)
-                    encrypted_ids.append(ciphertext)
-
-                # Add the pseudonym column to the dataset
-                self.dataset['Pseudonym'] = encrypted_ids
-
-                return "Data anonymized successfully."
+               # Drop the specified attributes
+               self.dataset.drop(columns=attributes_to_drop, inplace=True)
                 
+               # Encrypt the sequential numbers to create pseudonyms
+               num_records = len(self.dataset)
+               encrypted_ids = []
+               for i in range(1, num_records + 1):
+                   plaintext = str(i)
+                   plaintext_int = int(plaintext)  # Convert plaintext to integer
+                   ciphertext = self.ope.encrypt(plaintext_int)
+                   encrypted_ids.append(ciphertext)
+
+               # Add the pseudonym column to the dataset
+               self.dataset['Pseudonym'] = encrypted_ids
+
+               return "Data anonymized successfully."
+            
             except Exception as e:
-                return str(e)
+               return str(e)
         else:
             return "No dataset imported."
      
@@ -81,6 +82,12 @@ class Anonymization:
                 # Split the dataset into groups of size k
                 for i in range(0, len(self.dataset), k):
                     group = self.dataset[i:i+k]
+                    
+                    # Perturb numerical data for specified columns
+                    self.perturb_numerical_data(group, columns)
+                    
+                    # Micro-aggregate numerical data for specified columns
+                    self.micro_aggregate(group, columns)
                     
                     # Replace each value in the group with the range (for numerical data) or a category string (for categorical data)
                     for column in columns:
@@ -110,7 +117,32 @@ class Anonymization:
         else:
             return "No dataset imported."
 
-    
+    def micro_aggregate(self, group, columns, group_size=3):
+        # Sort the group
+        group.sort_values(by=columns, inplace=True)
+
+        # Create a list for the micro-aggregated groups
+        micro_aggregated_groups = []
+
+        # Split the group into sub-groups of size 'group_size'
+        for i in range(0, len(group), group_size):
+            sub_group = group[i:i+group_size]
+
+            # Calculate the mean of the sub-group for the specified columns
+            for column in columns:
+                if np.issubdtype(sub_group[column].dtype, np.number):
+                    mean = sub_group[column].mean()
+
+                    # Replace each value in the sub-group with the mean
+                    sub_group[column] = mean
+
+            # Append the sub-group to the list of micro-aggregated groups
+            micro_aggregated_groups.append(sub_group)
+
+        # Concatenate all the micro-aggregated groups into a new DataFrame
+        return pd.concat(micro_aggregated_groups)
+
+
 
     def is_k_anonymized(self, k, columns):
         # Check if the dataset already satisfies k-anonymity for the specified columns
@@ -121,49 +153,53 @@ class Anonymization:
                 return False
         return True
 
-    def l_diversify(self, l, sensitive_column, quasi_identifier_columns):
+    
+    def perturb_numerical_data(self, group, columns):
+        # Add your perturbation methods for numerical data here
+        for column in columns:
+            if np.issubdtype(group[column].dtype, np.number):
+                #Add random noise to each numerical value
+                noise = np.random.normal(0, 1, len(group))
+                group[column] += noise
+                
+                #Add a random constant to each numerical value
+                # constant = np.random.randint(-5, 5)
+                # group[column] += constant
+
+    def l_diversity(self, l, sensitive_attribute):
         if self.dataset is not None:
             try:
-               # Initialize fake data outside the loop
-               fake_data = []        
-               # Group the dataset by the quasi-identifier columns
-               groups = self.dataset.groupby(quasi_identifier_columns)
-               # Check l-diversity for each group
-               for name, group in groups:
-                   unique_values = group[sensitive_column].nunique()
-                   print(f"Group: {name}, Unique Values: {unique_values}, l: {l}")
-                   if unique_values < l:
-                      print("Diversification needed")
-                      # Apply diversification techniques
-                      # Add spurious logs or noise by inserting fake rows
-                      num_fake_rows = l - unique_values  # Calculate the number of fake rows needed
-                      print(f"Adding {num_fake_rows} fake rows")
-                      # Generate fake data for the fake rows
-                      for _ in range(num_fake_rows):
-                          fake_row = {}  # Dictionary to store values for the fake row
-                          # Generate fake values for each column
-                          for column in self.dataset.columns:
-                               if column != sensitive_column:
-                                   # Generate fake values for non-sensitive columns
-                                   # For simplicity, you can use random values or predefined placeholders
-                                   fake_row[column] = random.choice(['fake_value_1', 'fake_value_2', 'fake_value_3'])
-                               else:
-                                   # For the sensitive column, you can use a placeholder
-                                   fake_row[column] = 'SENSITIVE_DATA_PLACEHOLDER'
-                          # Append the fake row to the list of fake data
-                          fake_data.append(fake_row)
-               # Convert the list of fake data into a DataFrame
-               fake_df = pd.DataFrame(fake_data)
-               print("Fake data generated:")
-               print(fake_df)
-               # Concatenate the original dataset with the fake data
-               self.dataset = pd.concat([self.dataset, fake_df], ignore_index=True)
-               print("Dataset updated")
-               return "Data diversified successfully."
+                if self.is_l_diverse(l, sensitive_attribute):
+                    return "Dataset already satisfies l-diversity for the sensitive attribute."
+
+                self.dataset.sort_values(by=sensitive_attribute, inplace=True)
+                
+                diversified_groups = []
+                
+                unique_sensitive_values = self.dataset[sensitive_attribute].unique()
+                for value in unique_sensitive_values:
+                    group = self.dataset[self.dataset[sensitive_attribute] == value]
+                    if len(group) >= l:
+                        diversified_groups.append(group.sample(n=l))
+                    else:
+                        diversified_groups.append(group)
+
+                self.dataset = pd.concat(diversified_groups)
+                
+                return "Data diversified successfully."
             except Exception as e:
-               return str(e)
+                return str(e)
         else:
             return "No dataset imported."
+
+    def is_l_diverse(self, l, sensitive_attribute):
+        unique_sensitive_values = self.dataset[sensitive_attribute].unique()
+        for value in unique_sensitive_values:
+            group = self.dataset[self.dataset[sensitive_attribute] == value]
+            if len(group[sensitive_attribute].unique()) < l:
+                return False
+        return True
+
 
     def generate_dataset(self, num_rows):
         identifiers = ['User ID']  
@@ -222,14 +258,14 @@ def importing_database():
     except Exception as e:
         return str(e)
 
-@app.route("/anonymize", methods=["POST"])
-def anonymize_data_route():
+@app.route("/Deidentification", methods=["POST"])
+def Deidentification_route():
     try:
         data = request.get_json()
         attributes_to_drop = data.get("attributes_to_drop")
 
-        # Call the anonymize_data function and return the result
-        result = service.anonymize_data(attributes_to_drop)
+        # Call the Deidentification function and return the result
+        result = service.Deidentification(attributes_to_drop)
         return jsonify({"message": result})
     except Exception as e:
         return str(e)
@@ -250,19 +286,17 @@ def k_anonymize():
     except Exception as e:
         return str(e)
 
-@app.route("/l_diversify", methods=["POST"])
-def l_diversify_route():
+
+@app.route("/l_diversity", methods=["POST"])
+def l_diversity():
     try:
         data = request.get_json()
         l = data.get("l")
-        sensitive_column = data.get("sensitive_column")
-        quasi_identifier_columns = data.get("quasi_identifier_columns", [])
-        if not isinstance(quasi_identifier_columns, list):
-            return "Quasi-identifier columns must be provided as a list."
-        result = service.l_diversify(l, sensitive_column, quasi_identifier_columns)
-        return result
+        sensitive_attribute = data.get("sensitive_attribute")
+        return service.l_diversity(l, sensitive_attribute)
     except Exception as e:
         return str(e)
+
 
 @app.route("/generate_dataset", methods=["POST"])
 def generate_dataset():
@@ -271,6 +305,42 @@ def generate_dataset():
         num_rows = data.get("num_rows")
         response = service.generate_dataset(num_rows)
         return response
+    except Exception as e:
+        return str(e)
+
+@app.route("/plot_data", methods=["GET"])
+def plot_data():
+    try:
+        if service.dataset is None:
+            return "No dataset imported."
+
+        # Anonymize the data
+        attributes_to_drop = []  # Assuming no attributes are dropped for simplicity
+        service.anonymize_data(attributes_to_drop)
+
+        # Plotting original data distributions
+        plt.figure(figsize=(10, 6))
+        plt.subplot(1, 2, 1)
+        for column in service.dataset.columns:
+            if service.dataset[column].dtype in [int, float]:
+                service.dataset[column].plot(kind='hist', alpha=0.5, label=column)
+        plt.title('Original Data Distributions')
+        plt.legend()
+
+        # Plotting data after anonymization
+        plt.subplot(1, 2, 2)
+        for column in service.dataset.columns:
+            if service.dataset[column].dtype in [int, float]:
+                service.dataset[column].plot(kind='hist', alpha=0.5, label=column)
+        plt.title('Anonymized Data Distributions')
+        plt.legend()
+
+
+        plt.show()
+
+        plt.close()
+
+        return "Plot generated successfully"
     except Exception as e:
         return str(e)
 

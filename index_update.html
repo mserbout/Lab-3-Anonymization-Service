@@ -41,13 +41,13 @@
 
     <hr> <!-- Horizontal Rule for Se    paration -->
 
-    <h1>Anonymize Data</h1>
-    <form id="anonymizeForm">
+    <h1>Deidentify Data</h1>
+    <form id="deidentifyForm">
         <label for="attributes">Attributes to drop (comma-separated):</label><br>
         <input type="text" id="attributes" name="attributes"><br><br>
-        <button type="button" onclick="submitForm()">Anonymize Data</button>
+        <button type="button" onclick="submitForm()">Deidentify Data</button>
     </form>
-
+    
     <p id="result"></p>
 
     <script>
@@ -57,8 +57,8 @@
                 return item.trim();
             });
             var data = { "attributes_to_drop": attributes };
-
-            fetch("/anonymize", {
+    
+            fetch("/Deidentification", {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json"
@@ -90,18 +90,62 @@
 
     <hr> <!-- Horizontal Rule for Separation -->
 
-    <!-- L-Diversity Form Section -->
-   <h1>L-Diversity Form</h1>
-   <form id="l_diversify_form">
-       <label for="l">Minimum Unique Values (l):</label><br>
-       <input type="number" id="l" name="l" required><br><br>
-       <label for="sensitive_column">Sensitive Column:</label><br>
-       <input type="text" id="sensitive_column" name="sensitive_column" required><br><br>
-       <label for="quasi_identifier_columns">Quasi-Identifier Columns (comma-separated):</label><br>
-       <input type="text" id="quasi_identifier_columns" name="quasi_identifier_columns" required><br><br>
-       <button type="button" onclick="applyLDiversity()">Apply L-Diversity</button>
-   </form>
-   <div id="result"></div>
+    <h2>l-Diversity</h2>
+    <form id="l_diversity_form">
+        <label for="l">Enter l value:</label>
+        <input type="number" id="l" name="l" required><br><br>
+        <label for="sensitive_attribute">Sensitive Attribute:</label>
+        <input type="text" id="sensitive_attribute" name="sensitive_attribute" required><br><br>
+        <button type="submit">Submit</button>
+    </form>
+
+    <div id="result"></div>
+
+    <script>
+        document.getElementById("l_diversity_form").addEventListener("submit", function(event){
+            event.preventDefault();
+            const formData = new FormData(this);
+            fetch("/l_diversity", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    l: formData.get("l"),
+                    sensitive_attribute: formData.get("sensitive_attribute")
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("result").innerText = data.message;
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+        });
+    </script>
+
+     <!-- Plot data -->
+     <!-- Button to plot data -->
+     <button onclick="plotData()">Plot Data</button>
+
+     <!-- Div to display plot message -->
+     <div id="plot-message"></div>
+ 
+     <script>
+         function plotData() {
+             fetch('/plot_data', {
+                 method: 'GET',
+             })
+             .then(response => response.text())
+             .then(result => {
+                 document.getElementById("plot-message").innerHTML = result;
+             })
+             .catch(error => {
+                 console.error('Error:', error);
+             });
+         }
+     </script>
 
     <script> 
 
@@ -204,29 +248,7 @@
             });
         }
 
-        function applyLDiversity() {
-            var l = document.getElementById("l").value;
-            var sensitiveColumn = document.getElementById("sensitive_column").value;
-            var quasiIdentifierColumns = document.getElementById("quasi_identifier_columns").value.split(',').map(item => item.trim());
-            var formData = {
-                "l": parseInt(l),
-                "sensitive_column": sensitiveColumn,
-                "quasi_identifier_columns": quasiIdentifierColumns
-            };
-            var jsonData = JSON.stringify(formData);
-            fetch("/l_diversify", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: jsonData
-            })
-            .then(response => response.text())
-            .then(data => {
-                document.getElementById("result").innerHTML = data;
-            })
-            .catch(error => console.error("Error:", error));
-        }
+        
     </script>
 </body>
 
