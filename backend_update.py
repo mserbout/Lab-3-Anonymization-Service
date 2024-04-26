@@ -110,12 +110,7 @@ class Anonymization:
         else:
             return "No dataset imported."
 
-    def is_k_anonymized(self, k, columns):
-        """
-        Check if the dataset already satisfies k-anonymity for the specified columns.
-        """
-        group_counts = self.dataset.groupby(columns).size()
-        return all(count >= k for count in group_counts)
+    
 
     def is_k_anonymized(self, k, columns):
         # Check if the dataset already satisfies k-anonymity for the specified columns
@@ -125,86 +120,6 @@ class Anonymization:
             if len(unique_combinations) < k:
                 return False
         return True
-
-        
-    
-    def perturb_numeric_data(self, attributes, noise_scale=0.3):
-        if self.dataset is not None:
-            try:
-                for attr in attributes:
-                    if attr in self.dataset.columns:
-                        noise = np.random.normal(scale=noise_scale, size=len(self.dataset))
-                        # Add the noise to the attribute values
-                        self.dataset[attr] = self.dataset[attr] + noise
-                    else:
-                        return f"Attribute '{attr}' not found in the dataset."
-                return "Numeric data perturbed successfully."
-            except Exception as e:
-                return str(e)
-        else:
-            return "No dataset imported."
-
-    def multiplicative_perturbation(self, attributes, distribution_params):
-        if self.dataset is not None:
-            try:
-                for attr in attributes:
-                    if attr in self.dataset.columns:
-                        # Generate random values from the specified distribution
-                        random_values = scipy.stats.lognorm.rvs(*distribution_params, size=len(self.dataset))
-                        # Multiply each data point by a random value
-                        self.dataset[attr] = self.dataset[attr] * random_values
-                    else:
-                        return f"Attribute '{attr}' not found in the dataset."
-                return "Multiplicative perturbation applied successfully."
-            except Exception as e:
-                return str(e)
-        else:
-            return "No dataset imported."
-
-    def uniform_perturbation(self, attributes, lower_bound, upper_bound):
-        if self.dataset is not None:
-            try:
-                for attr in attributes:
-                    if attr in self.dataset.columns:
-                        # Generate random values uniformly distributed within the specified range
-                        random_values = np.random.uniform(lower_bound, upper_bound, size=len(self.dataset))
-                        # Add random values to each data point
-                        self.dataset[attr] = self.dataset[attr] + random_values
-                    else:
-                        return f"Attribute '{attr}' not found in the dataset."
-                return "Uniform perturbation applied successfully."
-            except Exception as e:
-                return str(e)
-        else:
-            return "No dataset imported."
-
-
-    def generalize_selected_categories(self, attribute, categories, new_name):
-        if self.dataset is not None:
-            if attribute in self.dataset.columns:
-                try:
-                    # Replace the selected categories with the new name
-                    self.dataset.loc[self.dataset[attribute].isin(categories), attribute] = new_name
-                    
-                    return "Selected categories generalized successfully."
-                except Exception as e:
-                    return str(e)
-            else:
-                return f"Attribute '{attribute}' not found in the dataset."
-        else:
-            return "No dataset imported."
-
-    def pseudonymization_for_internal_use(self, column):
-        if self.dataset is not None:
-            try:
-                # Applying a reversible pseudonymization method for internal use
-                # method: reversing the string
-                self.dataset[column] = self.dataset[column].apply(lambda x: x[::-1])
-                return f"Data in column '{column}' pseudonymized successfully for internal use."
-            except Exception as e:
-                return str(e)
-        else:
-            return "No dataset imported."
 
     def l_diversify(self, l, sensitive_column, quasi_identifier_columns):
         if self.dataset is not None:
@@ -319,38 +234,6 @@ def anonymize_data_route():
     except Exception as e:
         return str(e)
 
-    
-@app.route("/perturb_numeric_data", methods=["POST"])
-def perturb_numeric_data():
-    try:
-        data = request.get_json()
-        attributes = data.get("attributes")
-        noise_scale = data.get("noise_scale", 0.3)
-        return service.perturb_numeric_data(attributes, noise_scale)
-    except Exception as e:
-        return str(e)
-
-@app.route("/multiplicative_perturbation", methods=["POST"])
-def multiplicative_perturbation_route():
-    try:
-        data = request.get_json()
-        attributes = data.get("attributes")
-        distribution_params = data.get("distribution_params")  # e.g., [s, loc, scale]
-        return service.multiplicative_perturbation(attributes, distribution_params)
-    except Exception as e:
-        return str(e)
-
-@app.route("/uniform_perturbation", methods=["POST"])
-def uniform_perturbation_route():
-    try:
-        data = request.get_json()
-        attributes = data.get("attributes")
-        lower_bound = data.get("lower_bound")
-        upper_bound = data.get("upper_bound")
-        return service.uniform_perturbation(attributes, lower_bound, upper_bound)
-    except Exception as e:
-        return str(e)
-
 @app.route("/show_results")
 def show_results():
     return service.show_results()
@@ -364,26 +247,6 @@ def k_anonymize():
         k = data.get("k")
         columns = data.get("columns")
         return service.k_anonymize(k, columns)
-    except Exception as e:
-        return str(e)
-
-@app.route("/generalize_selected_categories", methods=["POST"])
-def generalize_selected_categories():
-    try:
-        data = request.get_json()
-        attribute = data.get("attribute")
-        categories = data.get("categories")
-        new_name = data.get("new_name")
-        return service.generalize_selected_categories(attribute, categories, new_name)
-    except Exception as e:
-        return str(e)
-
-@app.route("/pseudonymization_for_internal_use", methods=["POST"])
-def pseudonymization_for_internal_use():
-    try:
-        data = request.get_json()
-        column = data.get("column")
-        return service.pseudonymization_for_internal_use(column)
     except Exception as e:
         return str(e)
 
