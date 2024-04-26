@@ -41,11 +41,38 @@
 
     <hr> <!-- Horizontal Rule for Se    paration -->
 
-    <!-- Anonymize Data Section -->
     <h1>Anonymize Data</h1>
-    <form action="/anonymize_data" method="POST">
-        <button type="submit">Anonymize Data</button>
+    <form id="anonymizeForm">
+        <label for="attributes">Attributes to drop (comma-separated):</label><br>
+        <input type="text" id="attributes" name="attributes"><br><br>
+        <button type="button" onclick="submitForm()">Anonymize Data</button>
     </form>
+
+    <p id="result"></p>
+
+    <script>
+        function submitForm() {
+            var attributesInput = document.getElementById("attributes");
+            var attributes = attributesInput.value.split(',').map(function(item) {
+                return item.trim();
+            });
+            var data = { "attributes_to_drop": attributes };
+
+            fetch("/anonymize", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(data)
+            })
+            .then(response => response.json())
+            .then(data => {
+                var resultElement = document.getElementById("result");
+                resultElement.innerText = data.message;
+            })
+            .catch(error => console.error('Error:', error));
+        }
+    </script>
 
     <hr> <!-- Horizontal Rule for Separation -->
 

@@ -34,24 +34,31 @@ class Anonymization:
         except Exception as e:
             return str(e)
 
-    def anonymize_data(self):
+    def anonymize_data(self, attributes_to_drop):
         if self.dataset is not None:
             try:
-                # drop the first column (the identifier)
-                self.dataset.drop(columns=self.dataset.columns[0], inplace=True)
+                # Check if all attributes exist in the dataset
+                for attribute_to_drop in attributes_to_drop:
+                    if attribute_to_drop not in self.dataset.columns:
+                        return f"Attribute '{attribute_to_drop}' not found in the dataset."
+
+                # Drop the specified attributes
+                self.dataset.drop(columns=attributes_to_drop, inplace=True)
+                    
+                # Encrypt the sequential numbers to create pseudonyms
                 num_records = len(self.dataset)
-                
-                # Use OPE to encrypt the sequential numbers
                 encrypted_ids = []
                 for i in range(1, num_records + 1):
-                    
                     plaintext = str(i)
                     plaintext_int = int(plaintext)  # Convert plaintext to integer
                     ciphertext = self.ope.encrypt(plaintext_int)
                     encrypted_ids.append(ciphertext)
-                    
+
+                # Add the pseudonym column to the dataset
                 self.dataset['Pseudonym'] = encrypted_ids
+
                 return "Data anonymized successfully."
+                
             except Exception as e:
                 return str(e)
         else:
@@ -300,9 +307,17 @@ def importing_database():
     except Exception as e:
         return str(e)
 
-@app.route("/anonymize_data", methods=["POST"])
-def anonymize_data():
-    return service.anonymize_data()
+@app.route("/anonymize", methods=["POST"])
+def anonymize_data_route():
+    try:
+        data = request.get_json()
+        attributes_to_drop = data.get("attributes_to_drop")
+
+        # Call the anonymize_data function and return the result
+        result = service.anonymize_data(attributes_to_drop)
+        return jsonify({"message": result})
+    except Exception as e:
+        return str(e)
 
     
 @app.route("/perturb_numeric_data", methods=["POST"])
