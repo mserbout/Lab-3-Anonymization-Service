@@ -87,7 +87,7 @@ class Anonymization:
                         if np.issubdtype(group[column].dtype, np.number):
                             min_val = group[column].min()
                             max_val = group[column].max()
-                            group[column] = f"{min_val}-{max_val}"
+                            group[column] = f"[{min_val}-{max_val}]"
                         else:
                             unique_values = group[column].unique()
                             if len(unique_values) > 1:
